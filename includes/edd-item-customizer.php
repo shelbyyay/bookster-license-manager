@@ -17,6 +17,7 @@ class Bookster_Edd_Item_Customizer {
         add_action('add_meta_boxes', [$this, 'register_meta_box']);
         add_action('save_post', [$this, 'save_meta_box']);
         add_filter( 'edd_sl_download_version', [$this, 'modify_stable_version_in_response'], 10, 2 );
+        add_filter('edd_sl_activate_license_response', [$this, 'add_all_access_flag'], 10, 2);
     }
 
     public function register_meta_box(): void {
@@ -82,6 +83,17 @@ class Bookster_Edd_Item_Customizer {
             return $custom_version;
         }
         return $version;
+    }
+
+    public function add_all_access_flag( $result, $edd_sl_license ) {
+
+        if (empty($edd_sl_license) || empty($edd_sl_license->download_id)) return $result;
+        
+        $is_all_access = edd_get_download_type( $edd_sl_license->download_id) === 'all_access';
+
+        $result['is_all_access'] = $is_all_access;
+
+        return $result;
     }
 }
 
