@@ -14,10 +14,10 @@ class Bookster_Edd_Item_Customizer {
     }
 
     private function init_hooks(): void {
-        add_action('add_meta_boxes', [$this, 'register_meta_box']);
-        add_action('save_post', [$this, 'save_meta_box']);
-        add_filter( 'edd_sl_download_version', [$this, 'modify_stable_version_in_response'], 10, 2 );
-        add_filter('edd_sl_activate_license_response', [$this, 'add_all_access_flag'], 10, 2);
+        add_action( 'add_meta_boxes', [ $this, 'register_meta_box' ] );
+        add_action( 'save_post', [ $this, 'save_meta_box' ] );
+        add_filter( 'edd_sl_download_version', [ $this, 'modify_stable_version_in_response' ], 10, 2 );
+        add_filter( 'edd_remote_license_activation_response', [ $this, 'add_all_access_flag'], 100000, 3 );  
     }
 
     public function register_meta_box(): void {
@@ -85,16 +85,17 @@ class Bookster_Edd_Item_Customizer {
         return $version;
     }
 
-    public function add_all_access_flag( $result, $edd_sl_license ) {
-
-        if (empty($edd_sl_license) || empty($edd_sl_license->download_id)) return $result;
-        
-        $is_all_access = edd_get_download_type( $edd_sl_license->download_id) === 'all_access';
-
-        $result['is_all_access'] = $is_all_access;
-
-        return $result;
-    }
+    public function add_all_access_flag( $response, $args, $license_id ) {     
+      if (empty($license_id)) return $response;                              
+                                                                             
+      $license = edd_software_licensing()->get_license( $license_id ); 
+      if (empty($license) || empty($license->download_id)) return $response; 
+                                                                             
+      $is_all_access = edd_get_download_type( $license->download_id ) === 'all_access';                                                              
+      $response['is_all_access'] = $is_all_access;                           
+                                                                             
+      return $response;                                                      
+  }
 }
 
 new Bookster_Edd_Item_Customizer();
